@@ -2,6 +2,7 @@
 
 [![License](https://img.shields.io/github/license/mgoellnitz/kettle.svg)](https://github.com/mgoellnitz/kettle/blob/master/LICENSE)
 [![Build](https://img.shields.io/gitlab/pipeline/backendzeit/kettle.svg)](https://gitlab.com/backendzeit/kettle/pipelines)
+[![Download](https://img.shields.io/badge/Snapshot-Download-brightgreen)](https://gitlab.com/backendzeit/kettle/-/jobs/artifacts/master/download?job=build)
 
 Shell Script to remotely control a Wifi based water boiling kettle which I
 eventually bought just because it might be fun.

@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-KETTLE=wasserkocher
+KETTLE=192.168.0.1
 PORT=2000
 TEMPERATURE=
 SWITCH=
@@ -92,7 +92,7 @@ else
     RESULT="Switching"
   fi
   if [ ! -z "$TEMPERATURE" ] ; then
-    # Setting the temperature can onyl be done after switching on
+    # Setting the temperature can only be done after switching on
     sleep 1
     echo "TEMP"
     if [ "$TEMPERATURE" = "100" ] ; then

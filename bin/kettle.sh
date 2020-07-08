@@ -85,10 +85,10 @@ else
   touch $LOCK
   RESULT="Error"
   if [ -z "$SWITCH" ] ; then
-    RESULT=$(echo "ee11010d"|xxd -r -p|nc wasserkocher 2000|hexdump -n 1 -s 2 -e '2/1 "%d\n"')
+    RESULT=$(echo "ee11010d"|xxd -r -p|nc -w 2 $KETTLE $PORT|hexdump -n 1 -s 2 -e '2/1 "%d\n"')
     RESULT+="°C"
   else
-    echo "ee01010d"|xxd -r -p|nc $KETTLE $PORT
+    echo "ee01010d"|xxd -r -p|nc -w 2 $KETTLE $PORT
     RESULT="Switching"
   fi
   if [ ! -z "$TEMPERATURE" ] ; then
@@ -96,34 +96,34 @@ else
     sleep 1
     echo "TEMP"
     if [ "$TEMPERATURE" = "100" ] ; then
-      echo "ee01200d"|xxd -r -p|nc $KETTLE $PORT
+      echo "ee01200d"|xxd -r -p|nc -w 1 $KETTLE $PORT
       RESULT="100°C"
     fi
     if [ "$TEMPERATURE" = "95" ] ; then
-      echo "ee01100d"|xxd -r -p|nc $KETTLE $PORT
+      echo "ee01100d"|xxd -r -p|nc -w 1 $KETTLE $PORT
       RESULT="95°C"
     fi
     if [ "$TEMPERATURE" = "80" ] ; then
-      echo "ee01080d"|xxd -r -p|nc $KETTLE $PORT
+      echo "ee01080d"|xxd -r -p|nc -w 1 $KETTLE $PORT
       sleep 1
-      echo "ee02080d"|xxd -r -p|nc $KETTLE $PORT
+      echo "ee02080d"|xxd -r -p|nc -w 1 $KETTLE $PORT
       sleep 1
-      echo "ee11080d"|xxd -r -p|nc $KETTLE $PORT
+      echo "ee11080d"|xxd -r -p|nc -w 1 $KETTLE $PORT
       RESULT="80°C"
     fi
     if [ "$TEMPERATURE" = "65" ] ; then
-      echo "ee01040d"|xxd -r -p|nc $KETTLE $PORT
+      echo "ee01040d"|xxd -r -p|nc -w 1 $KETTLE $PORT
       sleep 1
-      echo "ee02040d"|xxd -r -p|nc $KETTLE $PORT
+      echo "ee02040d"|xxd -r -p|nc -w 1 $KETTLE $PORT
       sleep 1
-      echo "ee11040d"|xxd -r -p|nc $KETTLE $PORT
+      echo "ee11040d"|xxd -r -p|nc -w 1 $KETTLE $PORT
       RESULT="65°C"
     fi
   fi
   if [ ! -z "$WARM" ] ; then
     # Keeping the temperature is a flag which must be set when the kettle switched on
     sleep 1
-    echo "ee01020d"|xxd -r -p|nc $KETTLE $PORT
+    echo "ee01020d"|xxd -r -p|nc -w 1 $KETTLE $PORT
     RESULT+=" and keeping warm."
   fi
   rm -f $LOCK

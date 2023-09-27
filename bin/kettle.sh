@@ -17,6 +17,7 @@
 #
 KETTLE=192.168.0.1
 PORT=2000
+EXITVALUE=0
 TEMPERATURE=
 SWITCH=
 WARM=
@@ -30,50 +31,53 @@ else
   STATUS="/tmp/kettle.status"
 fi
 
+function usage {
+   echo "Usage: $MYNAME [-f] [-k kettle] [-t temperature] [-s] [-w]" 1>&2
+   echo "" 1>&2
+   echo "  -f              fetch temperature" 1>&2
+   echo "  -h              this message" 1>&2
+   echo "  -k kettle       set name or ip for kettle to use" 1>&2
+   echo "  -s              switch kettel on" 1>&2
+   echo "  -t temperature  set temperature" 1>&2
+   echo "  -w              keep warm" 1>&2
+   echo "" 1>&2
+   echo "The default without parameters is to output the results of the previous command without any further action." 1>&2
+   echo "" 1>&2
+   exit 1
+}
 
-if [ "$#" == "0" ]; then
-  echo "W-LAN Kettle Command Line Tool - 'kettle.sh'"
-  echo ""
-  echo "$0 [-k kettle] [-t temperature] [-w] [-s]"
-  echo ""
-  echo "  -k ip-address or hostname of the kettle device"
-  echo ""
-  echo "  -t target temperature in degree C (65, 80, 95, or 100)"
-  echo ""
-  echo "  -w set keep warm flag"
-  echo ""
-  echo "  -s switch kettle on or off"
-  echo ""
-  exit 1
-fi
-
-PSTART=`echo $1|sed -e 's/^\(.\).*/\1/g'`
-while [ "$PSTART" = "-" ] ; do
-  if [ "$1" = "-k" ] ; then
-    shift
-    KETTLE="$1"
-  fi
-  if [ "$1" = "-t" ] ; then
-    shift
-    TEMPERATURE="$1"
-  fi
-  if [ "$1" = "-s" ] ; then
-    shift
-    SWITCH="1"
-  fi
-  if [ "$1" = "-w" ] ; then
-    shift
-    WARM="1"
-  fi
-  shift
-  PSTART=`echo $1|sed -e 's/^\(.\).*/\1/g'`
+while getopts "fhk:st:w" opt ; do
+  case "${opt}" in
+    f)
+      FETCH="fetch"
+      ;;
+    h)
+      usage
+      ;;
+    k)
+      KETTLE=$OPTARG
+      ;;
+    s)
+      SWITCH="switch"
+      ;;
+    t)
+      TEMPERATURE=$OPTARG
+      ;;
+    w)
+      WARM="warm"
+      ;;
+    *)
+      usage
+      ;;
+  esac
 done
+shift $((OPTIND-1))
 
 
 if [ -f $LOG ] ; then
   echo "$(date) - $0 START" >> $LOG
 fi
-for INTERVAL in 0 1 2 4 8 16 32 ; do
+for INTERVAL in 0 1 2 4 8 16 ; do
   if [ -f $LOCK ] ; then
     echo  "$(date) - $0: Sleeping $INTERVAL seconds." >> $LOG
     sleep $INTERVAL
@@ -81,12 +85,18 @@ for INTERVAL in 0 1 2 4 8 16 32 ; do
 done
 if [ -f $LOCK ] ; then
   RESULT="ERROR"
+  EXITVALUE=1
 else
+  EXITVALUE=0
   touch $LOCK
   RESULT="Error"
   if [ -z "$SWITCH" ] ; then
-    RESULT=$(echo "ee11010d"|xxd -r -p|nc -w 2 $KETTLE $PORT|hexdump -n 1 -s 2 -e '2/1 "%d\n"')
-    RESULT+="°C"
+    if [ -z "$FETCH" ] ; then
+      EXITVALUE=$(cat "$STATUS")
+    else
+      EXITVALUE=$(echo "ee11010d"|xxd -r -p|nc $KETTLE $PORT|hexdump -n 1 -s 2 -e '2/1 "%d\n"')
+    fi
+    RESULT="$EXITVALUE°C"
   else
     echo "ee01010d"|xxd -r -p|nc -w 2 $KETTLE $PORT
     RESULT="Switching"
@@ -132,3 +142,5 @@ if [ -f $LOG ] ; then
   echo "$(date) - $0: $RESULT" >> $LOG
 fi
 echo $RESULT
+echo $EXITVALUE > $STATUS
+exit $EXITVALUE
